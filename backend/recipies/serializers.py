@@ -8,7 +8,7 @@ from rest_framework import serializers
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    def to_representation(self, recipe_ingredient):
+    def to_representation(self, recipe_ingredient: RecipeIngredient) -> dict:
         return {
             'id': recipe_ingredient.ingredient.id,
             'name': recipe_ingredient.ingredient.name,
@@ -45,7 +45,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         read_only=False
     )
 
-    def to_representation(self, recipe):
+    def to_representation(self, recipe: Recipe) -> dict:
         return {
             'id': recipe.id,
             'author': 'author',
@@ -60,8 +60,8 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags': TagSerializer(recipe.tags, many=True).data
         }
 
-    def create(self, validated_data):
-        return create_recipe(validated_data)
+    def create(self, validated_data: dict) -> Recipe:
+        return create_recipe(validated_data: dict) -> Recipe
 
     class Meta:
         model = Recipe

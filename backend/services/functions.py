@@ -1,7 +1,7 @@
 from recipies.models import Recipe, RecipeIngredient
 
 
-def create_recipe(validated_data):
+def create_recipe(validated_data: dict) -> Recipe:
     recipe = Recipe.objects.create(
         author=validated_data['author'],
         name=validated_data['name'],

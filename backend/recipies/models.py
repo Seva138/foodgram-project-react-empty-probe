@@ -15,7 +15,7 @@ class Recipe(models.Model):
     )
 
     name = models.CharField(max_length=200, verbose_name='Name of a recipe')
-    image = models.ImageField()
+    image = models.ImageField(upload_to='images/%Y-%m-%d')
     text = models.TextField(verbose_name='Description of a recipe')
 
     ingredients = models.ManyToManyField(
