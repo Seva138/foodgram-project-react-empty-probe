@@ -1,12 +1,16 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+User = get_user_model()
 
 
 class Recipe(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipies'
+        related_name='recipies',
         verbose_name='Author of a recipe'
     )
 
@@ -15,13 +19,13 @@ class Recipe(models.Model):
     text = models.TextField(verbose_name='Description of a recipe')
 
     ingredients = models.ManyToManyField(
-        Ingredient,
-        through='RecipeIngredient'
+        'Ingredient',
+        through='RecipeIngredient',
         verbose_name='Ingredients of a recipe'
     )
 
     tags = models.ManyToManyField(
-        Tag,
+        'Tag',
         through='RecipeTag',
         verbose_name='Tags of a recipe'
     )
@@ -30,7 +34,7 @@ class Recipe(models.Model):
         validators=[
             MinValueValidator(1),
             MaxValueValidator(44640)
-        ]
+        ],
         verbose_name='Cooking time in minutes'
     )
 
@@ -57,12 +61,12 @@ class Ingredient(models.Model):
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
-        Recipe,
+        'Recipe',
         on_delete=models.CASCADE
     )
 
-    ingredient = models.ForeigKey(
-        Ingredient,
+    ingredient = models.ForeignKey(
+        'Ingredient',
         on_delete=models.CASCADE
     )
 
@@ -77,11 +81,11 @@ class RecipeIngredient(models.Model):
 
 class RecipeTag(models.Model):
     recipe = models.ForeignKey(
-        Recipe,
+        'Recipe',
         on_delete=models.CASCADE
     )
 
     tag = models.ForeignKey(
-        Tag,
+        'Tag',
         on_delete=models.CASCADE
     )
