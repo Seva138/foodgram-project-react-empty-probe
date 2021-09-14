@@ -7,20 +7,6 @@ from services.functions import create_recipe
 from rest_framework import serializers
 
 
-class RecipeIngredientSerializer(serializers.ModelSerializer):
-    def to_representation(self, recipe_ingredient: RecipeIngredient) -> dict:
-        return {
-            'id': recipe_ingredient.ingredient.id,
-            'name': recipe_ingredient.ingredient.name,
-            'measurement_unit': recipe_ingredient.ingredient.measurement_unit,
-            'amount': recipe_ingredient.amount
-        }
-
-    class Meta:
-        model = RecipeIngredient
-        exclude = ('recipe',)
-
-
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
@@ -35,10 +21,24 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'colour', 'slug')
 
 
+class RecipeIngredientSerializer(serializers.ModelSerializer):
+    def to_representation(self, recipe_ingredient: RecipeIngredient) -> dict:
+        return {
+            'id': recipe_ingredient.ingredient.id,
+            'name': recipe_ingredient.ingredient.name,
+            'measurement_unit': recipe_ingredient.ingredient.measurement_unit,
+            'amount': recipe_ingredient.amount
+        }
+
+    class Meta:
+        model = RecipeIngredient
+        exclude = ('recipe',)
+
 
 class RecipeSerializer(serializers.ModelSerializer):
     image = Base64ToContentFileField()
     ingredients = serializers.JSONField()
+
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True,
@@ -61,7 +61,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data: dict) -> Recipe:
-        return create_recipe(validated_data: dict) -> Recipe
+        return create_recipe(validated_data)
 
     class Meta:
         model = Recipe

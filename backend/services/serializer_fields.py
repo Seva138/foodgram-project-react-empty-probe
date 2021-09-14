@@ -8,12 +8,13 @@ from rest_framework import serializers
 
 
 class Base64ToContentFileField(serializers.Field):
-    """Accepts base64-encoded string and returns navite django file instance.
-    """
-    def to_representation(self, value: models.ImageField) -> Union[str, None]:
-        return value.url if value else None
+    def to_representation(self, image: models.ImageField) -> Union[str, None]:
+        return image.url if image else None
 
     def to_internal_value(self, data: str) -> ContentFile:
+        """Accepts base64-encoded string and returns django
+        ContentFile instance.
+        """
         try:
             _, base64_string = data.split(';base64,')
             return ContentFile(
@@ -22,20 +23,20 @@ class Base64ToContentFileField(serializers.Field):
             )
         except Exception:
             raise serializers.ValidationError(
-                'Failed to convert base64-string to an image.'
+                'Failed to convert base64-string to ContentFile instance.'
             )
 
 
 class HEXToColourNameField(serializers.Field):
-    """Accepts a colour name as hexadecimal representation and returns
-    human-readable text.
-    """
-    def to_representation(self, value: str) -> str:
-        return value
+    def to_representation(self, colour_name: str) -> str:
+        return colour_name
 
-    def to_internal_value(self, data: str) -> str:
+    def to_internal_value(self, hex_colour: str) -> str:
+        """Accepts a colour name as hexadecimal representation and returns
+        human-readable text.
+        """
         try:
-            return webcolors.hex_to_name(data)
+            return webcolors.hex_to_name(hex_colour)
         except Exception:
             raise serializers.ValidationError(
                 'There is no such colour name.'

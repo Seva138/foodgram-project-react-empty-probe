@@ -71,6 +71,7 @@ class RecipeIngredient(models.Model):
     )
 
     amount = models.IntegerField(
+        default=1,
         validators=[
             MinValueValidator(1),
             MaxValueValidator(44640)
