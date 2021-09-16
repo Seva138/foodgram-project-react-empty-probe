@@ -11,6 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = True
 
+AUTH_USER_MODEL = 'users.User'
+ROOT_URLCONF = 'backend.urls'
+
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -25,7 +28,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 
     'users',
-    'recipies'
+    'recipes'
 ]
 
 DATABASES = {
@@ -54,14 +57,8 @@ REST_FRAMEWORK = {
 
 SIMPLE_JWT = {
    'ACCESS_TOKEN_LIFETIME': timedelta(days=14),
-   'AUTH_HEADER_TYPES': ('Bearer', 'Token'),
+   'AUTH_HEADER_TYPES': ('Token', 'Bearer'),
 } 
-
-ROOT_URLCONF = 'backend.urls'
-
-STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,6 +69,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TEMPLATES = [
     {

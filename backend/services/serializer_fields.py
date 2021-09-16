@@ -1,10 +1,12 @@
+from django.core.files.base import ContentFile
+from django.db import models
+
+from rest_framework import serializers
+
 import time
 import base64
 import webcolors
 from typing import Union
-from django.core.files.base import ContentFile
-from django.db import models
-from rest_framework import serializers
 
 
 class Base64ToContentFileField(serializers.Field):
@@ -12,7 +14,7 @@ class Base64ToContentFileField(serializers.Field):
         return image.url if image else None
 
     def to_internal_value(self, data: str) -> ContentFile:
-        """Accepts base64-encoded string and returns django
+        """Accepts a base64-encoded string and returns django
         ContentFile instance.
         """
         try:
@@ -23,7 +25,7 @@ class Base64ToContentFileField(serializers.Field):
             )
         except Exception:
             raise serializers.ValidationError(
-                'Failed to convert base64-string to ContentFile instance.'
+                'Failed to convert base64-string to a ContentFile instance.'
             )
 
 
@@ -39,5 +41,5 @@ class HEXToColourNameField(serializers.Field):
             return webcolors.hex_to_name(hex_colour)
         except Exception:
             raise serializers.ValidationError(
-                'There is no such colour name.'
+                'There is no such colour name for the given hex.'
             )

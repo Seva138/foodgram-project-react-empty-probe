@@ -1,8 +1,9 @@
-from users.models import Subscription
-from recipies.models import User, Recipe, RecipeIngredient
+from users.models import UserSubscription
+from recipes.models import User, Recipe, RecipeIngredient
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import serializers
 from rest_framework.request import Request
@@ -42,6 +43,9 @@ def update_recipe(validated_data: dict) -> Recipe:
 
 
 def is_subscribed(user: User, request: Request) -> bool:
+    """Returns True if requested user is subscribed on request.user,
+    otherwise False. The same user is considered to be subscribed on itself.
+    """
     if request.user is user:
         return True
 
@@ -66,6 +70,9 @@ def save_new_user_password(user: User, password: str) -> User:
 
 
 def are_proper_credentials(request: Request) -> bool:
+    """Returns True if there is a user with the given email and password,
+    otherwise False.
+    """
     email = request.data.get('email')
     password = request.data.get('password')
 
@@ -75,19 +82,24 @@ def are_proper_credentials(request: Request) -> bool:
                 f'{field.title()} is a required field.'
             )
 
-    if User.objects.filter(email=email).exists():
+    try:
+        user = User.objects.get(email=email)
+    except ObjectDoesNotExist:
+        return False
+
+    if user.check_password(raw_password=password):
         return True
     return False
 
 
-def get_user(request: Request) -> User:
-    return User.objects.get(email=request.data['email'])
-
-
-def get_access_token():
+def get_access_token() -> dict:
+    """
+    Returns a dict with access (auth) token,
+    providing there is a user with the given email.
+    """
     return {
         'auth_token': str(RefreshToken.for_user(
-                get_user(request=request)
+                User.objects.get(email=request.data['email'])
             ).access_token
         ),
     }

@@ -3,5 +3,5 @@ from rest_framework import routers
 
 
 router = routers.DefaultRouter()
-router.register('recipies', views.RecipeViewSet)
+router.register('recipes', views.RecipeViewSet)
 urlpatterns = router.urls
