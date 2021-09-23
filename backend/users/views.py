@@ -2,33 +2,18 @@ from .models import User
 from .serializers import (
     GETUserSerializer,
     POSTUserSerializer,
-    UserPasswordSerializer
+    UserPasswordSerializer,
+    UserSubscriptionSerializer
 )
-from services.functions import are_proper_credentials, get_access_token
 
 from rest_framework import views, generics, viewsets
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 
-class CustomTokenObtainView(views.APIView):
-    """Token-obtain view, which accepts unique email address and password --
-    returns a json with a token, providing the given credentials are corrent.
-    """
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        if are_proper_credentials(request=request):
-            # TODO: email field should be unique one.
-            return Response(
-                data=get_access_token(),
-                status=status.HTTP_201_CREATED)
-        return Response(status=HTTP_400_BAD_REQUEST)
-
-
 class UserViewSet(viewsets.ModelViewSet):
-    """List & Retrieve View Set for User model. Uses POSTUserSerializer
+    """List & Retrieve Model View Set for User model. Uses POSTUserSerializer
     for accout registration, otherwise GETUserSerializer.
     """
     queryset = User.objects.all()
@@ -43,9 +28,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class UserDetailView(generics.RetrieveAPIView):
-    """
-    Retrieve API View for users/me/ endpoint --
-    shows account information about authenticated request.user.
+    """Retrieve API View for users/me/ endpoint --
+    shows account information for authenticated request.user.
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = GETUserSerializer
@@ -55,8 +39,7 @@ class UserDetailView(generics.RetrieveAPIView):
 
 
 class UserPasswordView(generics.CreateAPIView):
-    """
-    Create API View, which accepts a current password and a new password --
+    """Create API View, which accepts a current password and a new password --
     as a result, sets the new password if validation process was successfull.
     """
     permission_classes = (IsAuthenticated,)
@@ -66,4 +49,26 @@ class UserPasswordView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserSubscriptionView(viewsets.ViewSet):
+    """View Set for user-to-user subscription process.
+    """
+    permission_classes = (IsAuthenticated,)
+
+    def list(self, request):
+        queryset = request.user.subscriptions.all()
+        serializer = UserSubscriptionSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request, id):
+        serializer = UserSubscriptionSerializer(request.user)
+        serializer.validate(request=request, id=id)
+        return Response(serializer.create(request=request, id=id))
+
+    def destroy(self, request, id):
+        serializer = UserSubscriptionSerializer(request.user)
+        serializer.validate(request=request, id=id)
+        serializer.destroy(request=request, id=id) 
         return Response(status=status.HTTP_204_NO_CONTENT)

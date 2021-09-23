@@ -3,8 +3,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    """Extended user model, which uses custom username and email fields
-    along with subscriptions & favorites. Email field is implemented as
+    """Extended user model, which uses custom <username> and <email> fields
+    along with <subscriptions> & <favorites>. Email field is implemented as
     USERNAME_FIELD for sake of authorization.
     """
     username = models.CharField(
@@ -38,7 +38,7 @@ class User(AbstractUser):
 
 
 class UserSubscription(models.Model):
-    """Intermediate "<join>" table of subscription between two users.
+    """Intermediate "join" table of subscription between two users.
     Additionaly implements date of creation field.
     """
     follower = models.ForeignKey(
@@ -61,8 +61,8 @@ class UserSubscription(models.Model):
 
 
 class UserRecipe(models.Model):
-    """Intermediate "<join>" table for user's favorite recipes.
-    Additionaly implements note field, where user can save some notes.
+    """Intermediate "join" table for user's favorite recipes.
+    Additionaly implements <note> field, where user can save some notes.
     """
     user = models.ForeignKey(
         to='User',
@@ -86,7 +86,7 @@ class UserRecipe(models.Model):
 
 
 class UserCart(models.Model):
-    """User's shopping cart, where one can add recipes of he or she choice.
+    """User's shopping cart, where one can add recipes of its choice.
     """
     user = models.OneToOneField(
         to='User',

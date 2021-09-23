@@ -1,10 +1,78 @@
 from .models import Recipe, Ingredient, Tag, RecipeIngredient, User
+from users.serializers import GETUserSerializer
 from services.serializer_fields import (
     Base64ToContentFileField,
     HEXToColourNameField
 )
-from services.functions import create_recipe
+from services.functions import (
+    create_recipe,
+    update_recipe,
+    is_favorited,
+    is_in_shopping_cart,
+)
+
 from rest_framework import serializers
+from rest_framework.request import Request
+
+
+class RecipeSerializer(serializers.ModelSerializer):
+    image = Base64ToContentFileField()
+    ingredients = serializers.JSONField()
+
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(),
+        many=True,
+        read_only=False
+    )
+
+    def to_representation(self, recipe: Recipe) -> dict:
+        return {
+            'id': recipe.id,
+            'name': recipe.name,
+            'image': recipe.image.url if recipe.image else None,
+            'text': recipe.text,
+            'cooking_time': recipe.cooking_time,
+            'is_favorited': is_favorited(
+                recipe=recipe,
+                request=self.context['request']
+            ),
+            'is_in_shopping_cart': is_in_shopping_cart(
+                recipe=recipe,
+                request=self.context['request']
+            ),
+            'tags': TagSerializer(recipe.tags, many=True).data,
+            'author': GETUserSerializer(
+                recipe.author,
+                context={'request': self.context['request']}
+            ).data,
+            'ingredients': RecipeIngredientSerializer(
+                RecipeIngredient.objects.filter(recipe=recipe),
+                many=True
+            ).data
+        }
+
+    def create(self, validated_data: dict) -> Recipe:
+        return create_recipe(
+            validated_data=validated_data,
+            request=self.context['request']
+        )
+
+    def update(self, instance: Recipe, validated_data: dict) -> Recipe:
+        return update_recipe(instance=instance, validated_data=validated_data)
+
+    class Meta:
+        model = Recipe
+        fields = (
+            'id',
+            'author',
+            'name',
+            'image',
+            'text',
+            'ingredients',
+            'tags',
+            'cooking_time',
+        )
+        extra_kwargs = {'author': {'required': False}}
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -33,45 +101,3 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngredient
         exclude = ('recipe',)
-
-
-class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ToContentFileField()
-    ingredients = serializers.JSONField()
-
-    tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
-        many=True,
-        read_only=False
-    )
-
-    def to_representation(self, recipe: Recipe) -> dict:
-        return {
-            'id': recipe.id,
-            'author': 'author',
-            'name': recipe.name,
-            'image': recipe.image.url,
-            'text': recipe.text,
-            'cooking_time': recipe.cooking_time,
-            'ingredients': RecipeIngredientSerializer(
-                RecipeIngredient.objects.filter(recipe=recipe),
-                many=True
-            ).data,
-            'tags': TagSerializer(recipe.tags, many=True).data
-        }
-
-    def create(self, validated_data: dict) -> Recipe:
-        return create_recipe(validated_data)
-
-    class Meta:
-        model = Recipe
-        fields = (
-            'id',
-            'author',
-            'name',
-            'image',
-            'text',
-            'ingredients',
-            'tags',
-            'cooking_time',
-        )
