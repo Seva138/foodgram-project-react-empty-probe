@@ -10,7 +10,8 @@ from users.serializers import (
     UserShoppingCartSerializer
 )
 from users.models import UserCart
-from services.functions import return_ingredients
+from services.functions import get_recipe_queryset, return_ingredients
+from services.pagination import CustomPageNumberPagination
 
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse, HttpResponse
@@ -20,12 +21,21 @@ from rest_framework import views, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework import filters
+
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (RecipePermission,)
     serializer_class = RecipeSerializer
-    queryset = Recipe.objects.all()
+    pagination_class = CustomPageNumberPagination
+
+    def get_queryset(self):
+        return get_recipe_queryset(self)
+
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('tags', 'author')
 
 
 class TagViewSet(viewsets.ViewSet):
@@ -34,9 +44,9 @@ class TagViewSet(viewsets.ViewSet):
         serializer = TagSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         queryset = Tag.objects.all()
-        tag = get_object_or_404(queryset, id=id)
+        tag = get_object_or_404(queryset, id=pk)
         serializer = TagSerializer(tag)
         return Response(serializer.data)
 
@@ -47,20 +57,23 @@ class IngredientViewSet(viewsets.ViewSet):
         serializer = IngredientSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, id=None):
+    def retrieve(self, request, pk=None):
         queryset = Ingredient.objects.all()
-        tag = get_object_or_404(queryset, id=id)
+        tag = get_object_or_404(queryset, id=pk)
         serializer = IngredientSerializer(tag)
         return Response(serializer.data)
 
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+
 
 class UserFavoriteRecipeViewSet(viewsets.ViewSet):
-    permissions_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request, id):
         queryset = Recipe.objects.all()
         recipe = get_object_or_404(queryset, id=id)
-        serializer = FavoriteRecipeSerializer(recipe)
+        serializer = UserFavoriteRecipeSerializer(recipe)
         serializer.validate(request=request, id=id)
         serializer.create(request=request, id=id)
         return Response(serializer.data)
@@ -68,14 +81,14 @@ class UserFavoriteRecipeViewSet(viewsets.ViewSet):
     def destroy(self, request, id):
         queryset = Recipe.objects.all()
         recipe = get_object_or_404(queryset, id=id)
-        serializer = FavoriteRecipeSerializer(recipe)
+        serializer = UserFavoriteRecipeSerializer(recipe)
         serializer.validate(request=request, id=id)
         serializer.destroy(request=request, id=id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserShoppingCartViewSet(viewsets.ViewSet):
-    permissions_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
 
     def create(self, request, id):
         queryset = Recipe.objects.all()

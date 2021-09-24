@@ -5,6 +5,7 @@ from .serializers import (
     UserPasswordSerializer,
     UserSubscriptionSerializer
 )
+from services.pagination import CustomPageNumberPagination
 
 from rest_framework import views, generics, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -13,9 +14,6 @@ from rest_framework import status
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """List & Retrieve Model View Set for User model. Uses POSTUserSerializer
-    for accout registration, otherwise GETUserSerializer.
-    """
     queryset = User.objects.all()
 
     def get_serializer_class(self):
@@ -28,9 +26,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class UserDetailView(generics.RetrieveAPIView):
-    """Retrieve API View for users/me/ endpoint --
-    shows account information for authenticated request.user.
-    """
     permission_classes = (IsAuthenticated,)
     serializer_class = GETUserSerializer
 
@@ -39,9 +34,6 @@ class UserDetailView(generics.RetrieveAPIView):
 
 
 class UserPasswordView(generics.CreateAPIView):
-    """Create API View, which accepts a current password and a new password --
-    as a result, sets the new password if validation process was successfull.
-    """
     permission_classes = (IsAuthenticated,)
     serializer_class = UserPasswordSerializer
 
@@ -53,22 +45,30 @@ class UserPasswordView(generics.CreateAPIView):
 
 
 class UserSubscriptionView(viewsets.ViewSet):
-    """View Set for user-to-user subscription process.
-    """
     permission_classes = (IsAuthenticated,)
+    pagination_class = CustomPageNumberPagination
 
     def list(self, request):
         queryset = request.user.subscriptions.all()
-        serializer = UserSubscriptionSerializer(queryset, many=True)
+        serializer = UserSubscriptionSerializer(
+            queryset, many=True,
+            context={'request': request}
+        )
         return Response(serializer.data)
 
     def create(self, request, id):
-        serializer = UserSubscriptionSerializer(request.user)
+        serializer = UserSubscriptionSerializer(
+            request.user,
+            context={'request': request}
+        )
         serializer.validate(request=request, id=id)
         return Response(serializer.create(request=request, id=id))
 
     def destroy(self, request, id):
-        serializer = UserSubscriptionSerializer(request.user)
+        serializer = UserSubscriptionSerializer(
+            request.user,
+            context={'request': request}
+        )
         serializer.validate(request=request, id=id)
         serializer.destroy(request=request, id=id) 
         return Response(status=status.HTTP_204_NO_CONTENT)

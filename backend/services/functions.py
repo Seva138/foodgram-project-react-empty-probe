@@ -6,17 +6,20 @@ from django.http import FileResponse, HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import QuerySet
 
-from rest_framework import serializers
+from rest_framework import viewsets, serializers
 from rest_framework.request import Request
+from rest_framework.permissions import SAFE_METHODS
 
+from typing import Union, List
 from collections import defaultdict
 
 
 User = get_user_model()
 
 
-def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict):
+def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict) -> None:
     """Adds ingredients with specified amount to a particular recipe,
     using intermediate "join" table RecipeIngredient.
     """
@@ -60,7 +63,6 @@ def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
     add_ingredients_to_recipe(recipe=instance, validated_data=validated_data)
 
     instance.save()
-
     return instance
 
 
@@ -95,7 +97,7 @@ def save_new_user_password(user: User, password: str) -> User:
     return user
 
 
-def is_favorited(recipe: Recipe, request: Request):
+def is_favorited(recipe: Recipe, request: Request) -> bool:
     """Returns True if a particular recipe is user's favorite one,
     otherwise False.
     """
@@ -104,7 +106,7 @@ def is_favorited(recipe: Recipe, request: Request):
     return False
 
 
-def is_in_shopping_cart(recipe: Recipe, request: Request):
+def is_in_shopping_cart(recipe: Recipe, request: Request) -> bool:
     """Returns True if specified recipe is in user's shopping cart,
     otherwise False.
     """
@@ -228,7 +230,7 @@ def validate_user_shopping_cart_process(request: Request, id: int) -> None:
 
 def create_ingredient_dict(request: Request) -> defaultdict:
     """Returns a dict with all ingredients (keys), which were contained
-    in the recipes, and their amount (values).
+    in the recipes of a particular shopping cart, and their amount (values).
     """
     try:
         ingredient_dict = defaultdict(lambda: 0)
@@ -265,3 +267,36 @@ def return_ingredients(request: Request) -> str:
         return file
     except FileNotFoundError as e:
         raise e
+
+
+def get_recipe_queryset(self: viewsets.ModelViewSet) \
+    -> Union[QuerySet, List[Recipe]]:
+    """Returns a recipe queryset. It is assumed, that only authorized user
+    can use query parameters.
+    """
+    queryset = Recipe.objects.all()
+
+    if self.request.method in SAFE_METHODS:
+        return queryset
+
+    user = User.objects.get(id=self.request.user.id)
+    shopping_cart = UserCart.objects.get(user=user) \
+        if UserCart.objects.filter(user=user).exists() else None
+
+    is_favorited = self.request.query_params.get('is_favorited')
+    is_in_shopping_cart = self.request.query_params.get(
+        'is_in_shopping_cart'
+    )
+
+    if is_favorited and is_in_shopping_cart:
+        return user.favorites.all() + shopping_cart.recipes.all() \
+            if shopping_cart else user.favorites.all()
+
+    if is_favorited:
+        return user.favorites.all()
+
+    if is_in_shopping_cart:
+        return shopping_cart.recipes.all() \
+            if shopping_cart else queryset
+
+    return queryset

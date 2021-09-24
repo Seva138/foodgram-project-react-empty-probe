@@ -37,8 +37,9 @@ class GETUserSerializer(serializers.ModelSerializer):
             'last_name': user.last_name,
             'email': user.email,
             'is_subscribed': is_subscribed(
-                user=user, request=self.context['request']
-            )
+                user=user,
+                request=self.context['request']
+            ) if self.context['request'].user.is_authenticated else None
         }
 
     class Meta:
@@ -97,6 +98,11 @@ class NestedUserRecipeSerializer(serializers.ModelSerializer):
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
     def to_representation(self, user: User):
+        print(self.context)
+        recipes_limit = self.context['request'].query_params.get(
+            'recipes_limit'
+        )
+
         return {
                 'id': user.id,
                 'username': user.username,
@@ -105,7 +111,8 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
                 'last_name': user.last_name,
                 'is_subscribed': True,
                 'recipes': NestedUserRecipeSerializer(
-                    user.recipes.all(),
+                    user.recipes.all()[recipes_limit] if recipes_limit \
+                        else user.recipes.all(),
                     many=True
                 ).data,
                 'recipes_count': user.recipes.all().count()
@@ -130,10 +137,10 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
 class UserFavoriteRecipeSerializer(serializers.ModelSerializer):
     def to_representation(self, recipe: Recipe):
         return {
-                'id': recipe.id,
-                'name': recipe.name,
-                'image': recipe.image.url if recipe.image else None,
-                'cooking_time': recipe.cooking_time
+            'id': recipe.id,
+            'name': recipe.name,
+            'image': recipe.image.url if recipe.image else None,
+            'cooking_time': recipe.cooking_time
         }
 
     def create(self, request: Request, id: int) -> Recipe:
@@ -153,14 +160,14 @@ class UserFavoriteRecipeSerializer(serializers.ModelSerializer):
 class UserShoppingCartSerializer(serializers.ModelSerializer):
     def to_representation(self, recipe: Recipe):
         return {
-                'id': recipe.id,
-                'name': recipe.name,
-                'image': recipe.image.url if recipe.image else None,
-                'cooking_time': recipe.cooking_time
+            'id': recipe.id,
+            'name': recipe.name,
+            'image': recipe.image.url if recipe.image else None,
+            'cooking_time': recipe.cooking_time
         }
 
     def create(self, request: Request, id: int) -> Recipe:
-        return add_recipe_to_user_shopping_cart(request=request, id=id)
+        return add_recipe_into_user_shopping_cart(request=request, id=id)
 
     def destroy(self, request: Request, id: int) -> None:
         return destroy_recipe_from_user_shopping_cart(request=request, id=id)

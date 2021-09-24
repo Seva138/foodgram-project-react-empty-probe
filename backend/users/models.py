@@ -39,7 +39,7 @@ class User(AbstractUser):
 
 class UserSubscription(models.Model):
     """Intermediate "join" table of subscription between two users.
-    Additionaly implements date of creation field.
+    Additionaly implements date of creation.
     """
     follower = models.ForeignKey(
         to='User',
@@ -86,7 +86,8 @@ class UserRecipe(models.Model):
 
 
 class UserCart(models.Model):
-    """User's shopping cart, where one can add recipes of its choice.
+    """User's shopping cart, where one can add and delete
+    recipes of its choice.
     """
     user = models.OneToOneField(
         to='User',

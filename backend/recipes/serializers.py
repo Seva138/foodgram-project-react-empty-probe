@@ -32,19 +32,24 @@ class RecipeSerializer(serializers.ModelSerializer):
             'image': recipe.image.url if recipe.image else None,
             'text': recipe.text,
             'cooking_time': recipe.cooking_time,
+
             'is_favorited': is_favorited(
                 recipe=recipe,
                 request=self.context['request']
-            ),
+            ) if self.context['request'].user.is_authenticated else None,
+
             'is_in_shopping_cart': is_in_shopping_cart(
                 recipe=recipe,
                 request=self.context['request']
-            ),
+            ) if self.context['request'].user.is_authenticated else None,
+
             'tags': TagSerializer(recipe.tags, many=True).data,
+
             'author': GETUserSerializer(
                 recipe.author,
                 context={'request': self.context['request']}
             ).data,
+
             'ingredients': RecipeIngredientSerializer(
                 RecipeIngredient.objects.filter(recipe=recipe),
                 many=True
