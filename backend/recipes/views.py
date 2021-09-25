@@ -10,11 +10,11 @@ from users.serializers import (
     UserShoppingCartSerializer
 )
 from users.models import UserCart
-from services.functions import get_recipe_queryset, return_ingredients
+from services.functions import get_recipe_queryset, load_ingredients
 from services.pagination import CustomPageNumberPagination
 
 from django.shortcuts import get_object_or_404
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework import views, viewsets
@@ -24,6 +24,9 @@ from rest_framework import status
 from rest_framework import filters
 
 from django_filters.rest_framework import DjangoFilterBackend
+
+import os
+import tempfile
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -110,23 +113,18 @@ class UserShoppingCartViewSet(viewsets.ViewSet):
 class DownloadShoppingCartView(views.APIView):
     def get(self, request):
         try:
+            with open(file=f'{request.user.shopping_cart.id}_SC.txt',
+                    mode='w+') as file:
+                load_ingredients(request=request, file=file)
+
             return FileResponse(
-                open(return_ingredients(request=request).name, mode='rb'),
+                open(file=f'{request.user.shopping_cart.id}_SC.txt',
+                    mode='rb'),
                 as_attachment=True,
-                status=200
+                status=status.HTTP_200_OK
             )
-        except AttributeError as e:
-            return HttpResponse(
-                'You have to authorize in order to download shopping cart.',
-                status=401
-            )
-        except ObjectDoesNotExist as e:
-            return HttpResponse(
-                'You do not have a shopping cart on your account.',
-                status=400
-            )
-        except FileNotFoundError as e: 
-            return HttpResponse(
-                'We have some troubles, please, try later.',
-                status=500
+        except Exception as e:
+            return JsonResponse(
+                data={'success': False, 'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )

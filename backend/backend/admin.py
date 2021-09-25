@@ -26,7 +26,7 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ('name',)
 
 
-empty_value_display = '---empty---'
+admin.site.empty_value_display = '---empty---'
 admin.site.register(User, UserAdmin)
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)

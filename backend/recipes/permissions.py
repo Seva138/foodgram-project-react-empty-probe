@@ -9,7 +9,7 @@ class RecipePermission(permissions.BasePermission):
     def has_permission(self, request: Request, view: viewsets.ModelViewSet):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return True if request.user.is_authenticated else False
+        return request.user.is_authenticated
 
     def has_object_permission(
         self,
@@ -21,5 +21,7 @@ class RecipePermission(permissions.BasePermission):
             return True
 
         if request.method in ('PUT', 'DELETE'):
-            return True if request.user == obj.author \
-                or request.user.is_staff else False
+            return (True if request.user == obj.author
+                    or request.user.is_staff else False)
+
+        return False

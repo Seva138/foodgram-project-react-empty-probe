@@ -36,10 +36,11 @@ class GETUserSerializer(serializers.ModelSerializer):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
+
             'is_subscribed': is_subscribed(
                 user=user,
                 request=self.context['request']
-            ) if self.context['request'].user.is_authenticated else None
+            )
         }
 
     class Meta:
@@ -98,24 +99,25 @@ class NestedUserRecipeSerializer(serializers.ModelSerializer):
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
     def to_representation(self, user: User):
-        print(self.context)
         recipes_limit = self.context['request'].query_params.get(
             'recipes_limit'
         )
 
         return {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'is_subscribed': True,
-                'recipes': NestedUserRecipeSerializer(
-                    user.recipes.all()[recipes_limit] if recipes_limit \
-                        else user.recipes.all(),
-                    many=True
-                ).data,
-                'recipes_count': user.recipes.all().count()
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+
+            'recipes': NestedUserRecipeSerializer(
+                user.recipes.all()[recipes_limit] if recipes_limit \
+                    else user.recipes.all(),
+                many=True
+            ).data,
+
+            'recipes_count': user.recipes.all().count(),
+            'is_subscribed': True,
         }
 
     def validate(self, request: Request, id: int) -> dict:
