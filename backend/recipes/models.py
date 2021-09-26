@@ -137,13 +137,20 @@ class RecipeIngredient(models.Model):
 
     amount = models.IntegerField(
         default=1,
-        validators=[
+        validators=(
             MinValueValidator(1),
             MaxValueValidator(44640)
-        ],
+        ),
         verbose_name='amount',
         help_text='Amount of ingredients.'
     )
+
+    class Meta:
+        verbose_name = 'recipe ingredient relation'
+        verbose_name_plural = 'recipe ingredient relations'
+
+    def __str__(self):
+        return f'RecipeIngredient - id: {self.id}.'
 
 
 class RecipeTag(models.Model):
@@ -162,3 +169,10 @@ class RecipeTag(models.Model):
         verbose_name='tag',
         help_text='Relation to a tag.'
     )
+
+    class Meta:
+        verbose_name = 'recipe tag relation'
+        verbose_name_plural = 'recipe tag relations'
+
+    def __str__(self):
+        return f'RecipeTag - id: {self.id}.'

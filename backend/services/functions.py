@@ -17,26 +17,6 @@ from typing import Union, List
 User = get_user_model()
 
 
-def load_ingredients(request: Request, file: str) -> None:
-    try:
-        recipes = request.user.shopping_cart.recipes.all()
-        _ = RecipeIngredient.objects.filter(recipe__in=recipes)
-        annotated_ingredients = (
-            _.values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(Sum('amount'))
-        )
-
-        for annotated_ingredient in annotated_ingredients:
-            file.write(
-                (f"{annotated_ingredient['ingredient__name']}"
-                f" - ({annotated_ingredient['ingredient__measurement_unit']})"
-                f" - {annotated_ingredient['amount__sum']}.\n")
-            )
-    except (ObjectDoesNotExist, FileNotFoundError, PermissionError,
-        TimeoutError, ProcessLookupError, InterruptedError) as e:
-        raise e
-
-
 def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict) -> None:
     """Adds ingredients with specified amount to a particular recipe,
     using intermediate "join" table RecipeIngredient.
@@ -90,12 +70,10 @@ def is_subscribed(user: User, request: Request) -> bool:
     Returns False for not authorized user.
     """
     try:
-        if (request.user.email == user.email
+        return (request.user.email == user.email
             or UserSubscription.objects.filter(
                    author=request.user,
                    follower=user).exists()):
-            return True
-        return False
     except AttributeError:
         return False
 
@@ -118,6 +96,28 @@ def is_in_shopping_cart(recipe: Recipe, request: Request) -> bool:
         return request.user.shopping_cart.recipes.filter(id=recipe.id).exists()
     except (AttributeError, ObjectDoesNotExist) as e:
         return False
+
+
+def load_ingredients(request: Request, file: str) -> None:
+    """Loads ingredients and their amount of a particular user's shopping cart
+    into a file. Amount of the same ingredients is summarized.
+    """
+    try:
+        recipes = request.user.shopping_cart.recipes.all()
+        _ = RecipeIngredient.objects.filter(recipe__in=recipes)
+        annotated_ingredients = (
+            _.values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(Sum('amount'))
+        )
+
+        for annotated_ingredient in annotated_ingredients:
+            file.write(
+                (f"{annotated_ingredient['ingredient__name']}"
+                f" - ({annotated_ingredient['ingredient__measurement_unit']})"
+                f" - {annotated_ingredient['amount__sum']}.\n")
+            )
+    except (AttributeError, ObjectDoesNotExist, OSError) as e:
+        raise e
 
 
 def validate_current_user_password(user: User, password: str) -> str:
@@ -157,6 +157,68 @@ def destroy_subscription(request: Request, id: int) -> None:
     )
 
 
+def create_favorite_recipe(request: Request, id: int) -> Recipe:
+    """Creates a favorite recipe for a particular user.
+    """
+    requested_recipe = Recipe.objects.get(id=id)
+    request.user.favorites.add(requested_recipe)
+    return requested_recipe
+
+
+def destroy_favorite_recipe(request: Request, id: int) -> None:
+    """Destroys a favorite recipe for a particular user.
+    """
+    request.user.favorites.remove(Recipe.objects.get(id=id))
+
+
+def add_recipe_into_user_shopping_cart(request: Request, id: int) -> None:
+    """Adds a recipe into a shopping cart of a particular user.
+    """
+    user_shopping_cart, _ = UserCart.objects.get_or_create(user=request.user)
+    user_shopping_cart.recipes.add(Recipe.objects.get(id=id))
+
+
+def destroy_recipe_from_user_shopping_cart(request: Request, id: int) -> None:
+    """Destroys a recipe from a shopping cart of a particular user.
+    """
+    user_shopping_cart = UserCart.objects.get(user=request.user)
+    user_shopping_cart.recipes.remove(Recipe.objects.get(id=id))
+
+
+def get_recipe_queryset(self: viewsets.ModelViewSet) \
+    -> Union[QuerySet, List[Recipe]]:
+    """Returns a recipe queryset. It is assumed, that only authorized user
+    can use query parameters (filters).
+    """
+    queryset = Recipe.objects.all()
+
+    if self.request.method in SAFE_METHODS:
+        return queryset
+
+    user = User.objects.get(id=self.request.user.id)
+
+    shopping_cart = None
+    if UserCart.objects.filter(user=user).exists():
+        shopping_cart = UserCart.objects.get(user=user)
+
+    is_favorited = self.request.query_params.get('is_favorited')
+    is_in_shopping_cart = self.request.query_params.get(
+        'is_in_shopping_cart'
+    )
+
+    if is_favorited and is_in_shopping_cart:
+        if shopping_cart:
+            return user.favorites.all() + shopping_cart.recipes.all()
+        return user.favorites.all()
+
+    if is_favorited:
+        return user.favorites.all()
+
+    if is_in_shopping_cart:
+        return shopping_cart.recipes.all() if shopping_cart else queryset
+    return queryset
+
+
 def validate_subscription(request: Request, id: int) -> None:
     """Validates subscription process, when user is trying
     to subscribe or unsubscribe.
@@ -175,25 +237,11 @@ def validate_subscription(request: Request, id: int) -> None:
                 'You cannot subscribe on a user twice.'
             )
     else:
-        if id not in User.objects.get(id=request.user.id).subscriptions \
-            .values_list('id', flat=True):
+        if id not in User.objects.get(
+            id=request.user.id).subscriptions.values_list('id', flat=True):
             raise serializers.ValidationError(
                 'You are not subscribed on this user.'
             )
-
-
-def create_favorite_recipe(request: Request, id: int) -> Recipe:
-    """Creates a favorite recipe for a particular user.
-    """
-    requested_recipe = Recipe.objects.get(id=id)
-    request.user.favorites.add(requested_recipe)
-    return requested_recipe
-
-
-def destroy_favorite_recipe(request: Request, id: int) -> None:
-    """Destroys a favorite recipe for a particular user.
-    """
-    request.user.favorites.remove(Recipe.objects.get(id=id))
 
 
 def validate_favorite_recipe_process(request: Request, id: int) -> None:
@@ -212,27 +260,13 @@ def validate_favorite_recipe_process(request: Request, id: int) -> None:
             )
 
 
-def add_recipe_into_user_shopping_cart(request: Request, id: int) -> None:
-    """Adds a recipe into a shopping cart of a particular user.
-    """
-    user_shopping_cart, _ = UserCart.objects.get_or_create(user=request.user)
-    user_shopping_cart.recipes.add(Recipe.objects.get(id=id))
-
-
-def destroy_recipe_from_user_shopping_cart(request: Request, id: int) -> None:
-    """Destroys a recipe from a shopping cart of a particular user.
-    """
-    user_shopping_cart = UserCart.objects.get(user=request.user)
-    user_shopping_cart.recipes.remove(Recipe.objects.get(id=id))
-
-
 def validate_user_shopping_cart_process(request: Request, id: int) -> None:
     """Validates an addition/destruction of a recipe into/from a shopping cart.
     """
     if request.method == 'GET':
         if UserCart.objects.filter(user=request.user).exists():
-            if id in UserCart.objects.get(user=request.user).recipes.all() \
-                .values_list('id', flat=True):
+            if id in UserCart.objects.get(
+                user=request.user).recipes.all().values_list('id', flat=True):
                 raise serializers.ValidationError(
                     'You cannot add a recipe into your shopping cart twice.'
                 )
@@ -247,41 +281,8 @@ def validate_user_shopping_cart_process(request: Request, id: int) -> None:
                  'so you cannot delete anything from it.')
             )
 
-        if id not in UserCart.objects.get(user=request.user).recipes.all() \
-            .values_list('id', flat=True):
+        if id not in UserCart.objects.get(
+            user=request.user).recipes.all().values_list('id', flat=True):
             raise serializers.ValidationError(
                 'You do not have such a recipe in your shopping cart.'
             )
-
-
-def get_recipe_queryset(self: viewsets.ModelViewSet) \
-    -> Union[QuerySet, List[Recipe]]:
-    """Returns a recipe queryset. It is assumed, that only authorized user
-    can use query parameters (filters).
-    """
-    queryset = Recipe.objects.all()
-
-    if self.request.method in SAFE_METHODS:
-        return queryset
-
-    user = User.objects.get(id=self.request.user.id)
-    shopping_cart = UserCart.objects.get(user=user) \
-        if UserCart.objects.filter(user=user).exists() else None
-
-    is_favorited = self.request.query_params.get('is_favorited')
-    is_in_shopping_cart = self.request.query_params.get(
-        'is_in_shopping_cart'
-    )
-
-    if is_favorited and is_in_shopping_cart:
-        return user.favorites.all() + shopping_cart.recipes.all() \
-            if shopping_cart else user.favorites.all()
-
-    if is_favorited:
-        return user.favorites.all()
-
-    if is_in_shopping_cart:
-        return shopping_cart.recipes.all() \
-            if shopping_cart else queryset
-
-    return queryset

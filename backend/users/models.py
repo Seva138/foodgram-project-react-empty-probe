@@ -99,6 +99,14 @@ class UserSubscription(models.Model):
         help_text='Date of subscription between two users.'
     )
 
+    class Meta:
+        verbose_name = 'user-to-user subscription'
+        verbose_name_plural = 'user-to-user subscriptions'
+
+    def __str__(self):
+        return f'UserSubscription - id: {self.id}.'
+
+
 
 class UserRecipe(models.Model):
     """Intermediate "join" table for user's favorite recipes.
@@ -126,3 +134,10 @@ class UserRecipe(models.Model):
         verbose_name='note',
         help_text='Note on why user has decided to add a recipe.'
     )
+
+    class Meta:
+        verbose_name = 'user recipe relation'
+        verbose_name_plural = 'user recipe relations'
+
+    def __str__(self):
+        return f'UserRecipe - id: {self.id}.'
