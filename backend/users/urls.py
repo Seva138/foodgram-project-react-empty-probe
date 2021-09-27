@@ -1,5 +1,5 @@
 from . import views
-from services.views import CustomTokenObtainView
+from services.views import CustomAuthTokenView
 
 from django.urls import path
 
@@ -9,8 +9,13 @@ from rest_framework import routers
 urlpatterns = [
     path(
         'auth/token/login/',
-        CustomTokenObtainView.as_view(),
-        name='custom_token_obtain_pair_view'
+        CustomAuthTokenView.as_view(),
+        name='custom_login_view'
+    ),
+    path(
+        'auth/token/logout/',
+        CustomAuthTokenView.as_view(),
+        name='custom_logout_view'
     ),
     path(
         'users/me/',

@@ -48,7 +48,6 @@ class User(AbstractUser):
         return f'User - id: {self.id}, email: {self.email}.'
 
 
-
 class UserCart(models.Model):
     """User's shopping cart, where one can add or delete
     recipes of its choice.

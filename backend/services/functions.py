@@ -73,7 +73,7 @@ def is_subscribed(user: User, request: Request) -> bool:
         return (request.user.email == user.email
             or UserSubscription.objects.filter(
                    author=request.user,
-                   follower=user).exists()):
+                   follower=user).exists())
     except AttributeError:
         return False
 
@@ -113,8 +113,8 @@ def load_ingredients(request: Request, file: str) -> None:
         for annotated_ingredient in annotated_ingredients:
             file.write(
                 (f"{annotated_ingredient['ingredient__name']}"
-                f" - ({annotated_ingredient['ingredient__measurement_unit']})"
-                f" - {annotated_ingredient['amount__sum']}.\n")
+                 f" - ({annotated_ingredient['ingredient__measurement_unit']})"
+                 f" - {annotated_ingredient['amount__sum']}.\n")
             )
     except (AttributeError, ObjectDoesNotExist, OSError) as e:
         raise e
