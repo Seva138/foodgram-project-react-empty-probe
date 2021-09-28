@@ -2,6 +2,8 @@ from .models import UserSubscription
 from recipes.models import Recipe
 from services.functions import (
     is_subscribed,
+
+    create_user,
     validate_current_user_password,
     save_new_user_password,
 
@@ -57,6 +59,10 @@ class POSTUserSerializer(serializers.ModelSerializer):
             'last_name': user.last_name,
             'email': user.email
         }
+
+    def create(self, validated_data: dict) -> User:
+        breakpoint()
+        return create_user(validated_data=validated_data)
 
     class Meta:
         model = User

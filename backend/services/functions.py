@@ -3,7 +3,7 @@ from recipes.models import Recipe, RecipeIngredient
 from users.models import UserCart
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum, QuerySet
 
@@ -118,6 +118,16 @@ def load_ingredients(request: Request, file: str) -> None:
             )
     except (AttributeError, ObjectDoesNotExist, OSError) as e:
         raise e
+
+
+def create_user(validated_data: dict) -> User:
+    return User.objects.create(
+        username=validated_data['username'],
+        email=validated_data['email'],
+        first_name=validated_data['first_name'],
+        last_name=validated_data['last_name'],
+        password=make_password(validated_data['password'])
+    )
 
 
 def validate_current_user_password(user: User, password: str) -> str:
