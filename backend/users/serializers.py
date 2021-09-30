@@ -61,7 +61,6 @@ class POSTUserSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data: dict) -> User:
-        breakpoint()
         return create_user(validated_data=validated_data)
 
     class Meta:
