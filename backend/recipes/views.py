@@ -25,9 +25,6 @@ from rest_framework import filters
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-import os
-import tempfile
-
 
 class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (RecipePermission,)
@@ -38,7 +35,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return get_recipe_queryset(self)
 
     filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('tags', 'author')
+    filterset_fields = ('tags', 'author')
 
 
 class TagViewSet(viewsets.ViewSet):
