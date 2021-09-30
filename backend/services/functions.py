@@ -40,8 +40,6 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
     # Here is used the concept of queryset union.
     # Do not confuse "|" sign with bitwise OR operator.
 
-    breakpoint()
-
     return (
        self.request.user.favorites.all()
        if is_favorited else Recipe.objects.none()
