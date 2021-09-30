@@ -1,5 +1,5 @@
 from users.models import UserSubscription, UserCart
-from recipes.models import Recipe, RecipeIngredient
+from recipes.models import Recipe, Ingredient, RecipeIngredient
 from users.models import UserCart
 
 from django.contrib.auth import get_user_model
@@ -31,13 +31,13 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
     is_in_shopping_cart = self.request.query_params.get(
         'is_in_shopping_cart'
     )
-    tags = self.request.query_params.getlist('tags')
+    slugs = self.request.query_params.getlist('tags')
 
-    if ((not is_favorited and not is_in_shopping_cart and not tags)
+    if ((not is_favorited and not is_in_shopping_cart and not slugs)
         or not self.request.user.is_authenticated):
         return queryset
 
-    # Here is used the concept of queryset union.
+    # Here is used the concept of queryset union (A | B | C).
     # Do not confuse "|" sign with bitwise OR operator.
 
     return (
@@ -47,7 +47,7 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
        | self.request.user.shopping_cart.recipes.all()
        if is_in_shopping_cart else Recipe.objects.none()
 
-       | Recipe.objects.filter(tags__slug__in=tags)
+       | Recipe.objects.filter(tags__slug__in=slugs)
        if tags else Recipe.objects.none()
     ).distinct()
 
@@ -131,6 +131,14 @@ def is_in_shopping_cart(recipe: Recipe, request: Request) -> bool:
         return request.user.shopping_cart.recipes.filter(id=recipe.id).exists()
     except (AttributeError, ObjectDoesNotExist) as e:
         return False
+
+def get_ingredient_queryset(request: Request) \
+    -> Union[QuerySet, List[Ingredient]]:
+    if request.query_params.get('name'):
+        return Ingredient.objects.filter(
+            name__istartswith=request.query_params['name']
+        )
+    return Ingredient.objects.all()
 
 
 def load_ingredients(request: Request, file: str) -> None:

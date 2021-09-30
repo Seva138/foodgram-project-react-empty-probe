@@ -10,7 +10,9 @@ from users.serializers import (
     UserShoppingCartSerializer
 )
 from users.models import UserCart
-from services.functions import get_recipe_queryset, load_ingredients
+from services.functions import (
+    get_recipe_queryset, get_ingredient_queryset, load_ingredients
+)
 from services.pagination import CustomPageNumberPagination
 
 from django.shortcuts import get_object_or_404
@@ -21,7 +23,6 @@ from rest_framework import views, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from rest_framework import filters
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -48,8 +49,10 @@ class TagViewSet(viewsets.ViewSet):
 
 class IngredientViewSet(viewsets.ViewSet):
     def list(self, request):
-        queryset = Ingredient.objects.all()
-        serializer = IngredientSerializer(queryset, many=True)
+        serializer = IngredientSerializer(
+            get_ingredient_queryset(request),
+            many=True
+        )
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
@@ -57,9 +60,6 @@ class IngredientViewSet(viewsets.ViewSet):
         tag = get_object_or_404(queryset, id=pk)
         serializer = IngredientSerializer(tag)
         return Response(serializer.data)
-
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class UserFavoriteRecipeViewSet(viewsets.ViewSet):
@@ -106,7 +106,7 @@ class DownloadShoppingCartView(views.APIView):
     def get(self, request):
         try:
             with open(file=f'{request.user.shopping_cart.id}_SC.txt',
-                    mode='w+') as file:
+                      mode='w+') as file:
                 load_ingredients(request=request, file=file)
 
             return FileResponse(
