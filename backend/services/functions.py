@@ -48,7 +48,7 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
        if is_in_shopping_cart else Recipe.objects.none()
 
        | Recipe.objects.filter(tags__slug__in=slugs)
-       if tags else Recipe.objects.none()
+       if slugs else Recipe.objects.none()
     ).distinct()
 
 
