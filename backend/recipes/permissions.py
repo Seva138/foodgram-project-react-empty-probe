@@ -21,7 +21,5 @@ class RecipePermission(permissions.BasePermission):
             return True
 
         if request.method in ('PUT', 'DELETE'):
-            return (True if request.user == obj.author
-                    or request.user.is_staff else False)
-
+            return request.user == obj.author or request.user.is_staff
         return False

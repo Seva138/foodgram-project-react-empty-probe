@@ -184,7 +184,7 @@ def destroy_favorite_recipe(request: Request, id: int) -> None:
 def add_recipe_into_user_shopping_cart(request: Request, id: int) -> None:
     """Adds a recipe into a shopping cart of a particular user.
     """
-    user_shopping_cart, _ = UserCart.objects.get_or_create(user=request.user)
+    user_shopping_cart = UserCart.objects.get(user=request.user)
     user_shopping_cart.recipes.add(Recipe.objects.get(id=id))
 
 
@@ -198,35 +198,42 @@ def destroy_recipe_from_user_shopping_cart(request: Request, id: int) -> None:
 def get_recipe_queryset(self: viewsets.ModelViewSet) \
     -> Union[QuerySet, List[Recipe]]:
     """Returns a recipe queryset. It is assumed, that only authorized user
-    can use query parameters (filters).
+    can use query parameters (filters) in GET request.
     """
     queryset = Recipe.objects.all()
 
-    if self.request.method in SAFE_METHODS:
+    if self.request.method not in SAFE_METHODS:
         return queryset
-
-    user = User.objects.get(id=self.request.user.id)
-
-    shopping_cart = None
-    if UserCart.objects.filter(user=user).exists():
-        shopping_cart = UserCart.objects.get(user=user)
 
     is_favorited = self.request.query_params.get('is_favorited')
     is_in_shopping_cart = self.request.query_params.get(
         'is_in_shopping_cart'
     )
+    tags = self.request.query_params.get('tags')
 
-    if is_favorited and is_in_shopping_cart:
-        if shopping_cart:
-            return user.favorites.all() + shopping_cart.recipes.all()
-        return user.favorites.all()
+    if not is_favorited and not is_in_shopping_cart and not tags:
+        return queryset
 
-    if is_favorited:
-        return user.favorites.all()
+    try:
+        user = User.objects.get(id=self.request.user.id)
+    except (AttributeError, ObjectDoesNotExist) as e:
+        raise serializers.ValidationError(
+            'You need to authenticate to use any filter.'
+        )
 
-    if is_in_shopping_cart:
-        return shopping_cart.recipes.all() if shopping_cart else queryset
-    return queryset
+    # Here is used the concept of queryset intersection.
+    # Do not confuse "&" sign with bitwise and operator.
+
+    return (
+        user.favorites.all()
+        if is_favorited else queryset
+
+        & user.shopping_cart.all()
+        if is_in_shopping_cart else queryset
+
+        & Recipe.objects.filter(tags__slug__in=tags)
+        if tags else queryset
+    )
 
 
 def validate_subscription(request: Request, id: int) -> None:
@@ -274,23 +281,12 @@ def validate_user_shopping_cart_process(request: Request, id: int) -> None:
     """Validates an addition/destruction of a recipe into/from a shopping cart.
     """
     if request.method == 'GET':
-        if UserCart.objects.filter(user=request.user).exists():
-            if id in UserCart.objects.get(
-                user=request.user).recipes.all().values_list('id', flat=True):
-                raise serializers.ValidationError(
-                    'You cannot add a recipe into your shopping cart twice.'
-                )
-        else:
-            # We do not want to validate user's GET request
-            # If it was the first one.
-            return
-    else:
-        if not UserCart.objects.filter(user=request.user).exists():
+        if id in UserCart.objects.get(
+            user=request.user).recipes.all().values_list('id', flat=True):
             raise serializers.ValidationError(
-                ('You do not have a shopping cart currently, '
-                 'so you cannot delete anything from it.')
+                'You cannot add a recipe into your shopping cart twice.'
             )
-
+    else:
         if id not in UserCart.objects.get(
             user=request.user).recipes.all().values_list('id', flat=True):
             raise serializers.ValidationError(

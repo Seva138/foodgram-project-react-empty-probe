@@ -25,9 +25,6 @@ from rest_framework import filters
 
 from django_filters.rest_framework import DjangoFilterBackend
 
-import os
-import tempfile
-
 
 class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (RecipePermission,)
