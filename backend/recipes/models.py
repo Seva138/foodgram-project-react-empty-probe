@@ -77,9 +77,9 @@ class Tag(models.Model):
         verbose_name='name',
         help_text='Name of a tag.'
     )
-    colour = models.CharField(
+    color = models.CharField(
         max_length=64,
-        verbose_name='colour',
+        verbose_name='color',
         help_text='Colour of a tag.'
     )
     slug = models.SlugField(

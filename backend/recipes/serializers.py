@@ -87,11 +87,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
-    colour = HEXToColourNameField()
+    color = HEXToColourNameField()
 
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'colour', 'slug')
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):

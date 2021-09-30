@@ -23,23 +23,29 @@ class Base64ToContentFileField(serializers.Field):
                 content=base64.b64decode(base64_string),
                 name=f'{time.time()}.webp'
             )
-        except Exception:
+        except Exception as e:
             raise serializers.ValidationError(
                 'Failed to convert base64-string to a ContentFile instance.'
             )
 
 
 class HEXToColourNameField(serializers.Field):
-    def to_representation(self, colour_name: str) -> str:
-        return colour_name
+    def to_representation(self, color_name: str) -> str:
+        try:
+            return webcolors.name_to_hex(color_name)
+        except Exception as e:
+            raise serializers.ValidationError(
+                ('Failed to convert human-readable color name'
+                 'to hex representation.')
+            )
 
-    def to_internal_value(self, hex_colour: str) -> str:
-        """Accepts a colour name as hexadecimal representation and returns
+    def to_internal_value(self, hex_color: str) -> str:
+        """Accepts a color name as hexadecimal representation and returns
         human-readable text.
         """
         try:
-            return webcolors.hex_to_name(hex_colour)
-        except Exception:
+            return webcolors.hex_to_name(hex_color)
+        except Exception as e:
             raise serializers.ValidationError(
-                'There is no such colour name for the given hex.'
+                'There is no such color name for the given hex.'
             )
