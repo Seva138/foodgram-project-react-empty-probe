@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser 
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class User(AbstractUser):
@@ -65,6 +67,11 @@ class UserCart(models.Model):
         verbose_name='recipe',
         help_text='Relation to a recipe in User\'s shopping cart.'
     )
+
+    @receiver(post_save, sender=User)
+    def create_user_shopping_cart(sender, instance, created, **kwargs):
+        if created:
+            UserCart.objects.create(user=instance)
 
     class Meta:
         verbose_name = 'user\'s shopping cart'
