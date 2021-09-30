@@ -17,6 +17,43 @@ from typing import Union, List
 User = get_user_model()
 
 
+def get_recipe_queryset(self: viewsets.ModelViewSet) \
+    -> Union[QuerySet, List[Recipe]]:
+    """Returns a recipe queryset. It is assumed, that only authorized user
+    can use query parameters (filters) in GET request.
+    """
+    queryset = Recipe.objects.all()
+
+    if self.request.method not in SAFE_METHODS:
+        return queryset
+
+    is_favorited = self.request.query_params.get('is_favorited')
+    is_in_shopping_cart = self.request.query_params.get(
+        'is_in_shopping_cart'
+    )
+    tags = self.request.query_params.getlist('tags')
+
+    if ((not is_favorited and not is_in_shopping_cart and not tags)
+        or not self.request.user.is_authenticated):
+        return queryset
+
+    # Here is used the concept of queryset union.
+    # Do not confuse "|" sign with bitwise OR operator.
+
+    breakpoint()
+
+    return (
+       self.request.user.favorites.all()
+       if is_favorited else Recipe.objects.none()
+
+       | self.request.user.shopping_cart.recipes.all()
+       if is_in_shopping_cart else Recipe.objects.none()
+
+       | Recipe.objects.filter(tags__slug__in=tags)
+       if tags else Recipe.objects.none()
+    ).distinct()
+
+
 def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict) -> None:
     """Adds ingredients with specified amount to a particular recipe,
     using intermediate "join" table RecipeIngredient.
@@ -193,47 +230,6 @@ def destroy_recipe_from_user_shopping_cart(request: Request, id: int) -> None:
     """
     user_shopping_cart = UserCart.objects.get(user=request.user)
     user_shopping_cart.recipes.remove(Recipe.objects.get(id=id))
-
-
-def get_recipe_queryset(self: viewsets.ModelViewSet) \
-    -> Union[QuerySet, List[Recipe]]:
-    """Returns a recipe queryset. It is assumed, that only authorized user
-    can use query parameters (filters) in GET request.
-    """
-    queryset = Recipe.objects.all()
-
-    if self.request.method not in SAFE_METHODS:
-        return queryset
-
-    is_favorited = self.request.query_params.get('is_favorited')
-    is_in_shopping_cart = self.request.query_params.get(
-        'is_in_shopping_cart'
-    )
-    tags = self.request.query_params.get('tags')
-
-    if not is_favorited and not is_in_shopping_cart and not tags:
-        return queryset
-
-    try:
-        user = User.objects.get(id=self.request.user.id)
-    except (AttributeError, ObjectDoesNotExist) as e:
-        raise serializers.ValidationError(
-            'You need to authenticate to use any filter.'
-        )
-
-    # Here is used the concept of queryset intersection.
-    # Do not confuse "&" sign with bitwise and operator.
-
-    return (
-        user.favorites.all()
-        if is_favorited else queryset
-
-        & user.shopping_cart.all()
-        if is_in_shopping_cart else queryset
-
-        & Recipe.objects.filter(tags__slug__in=tags)
-        if tags else queryset
-    )
 
 
 def validate_subscription(request: Request, id: int) -> None:

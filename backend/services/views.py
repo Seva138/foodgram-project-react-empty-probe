@@ -12,7 +12,6 @@ class CustomAuthTokenView(ObtainAuthToken):
     serializer_class = CustomAuthTokenSerializer
 
     def post(self, request, *args, **kwargs):
-        breakpoint()
         if 'login/' in request.path:
             serializer = self.serializer_class(
                 data=request.data,

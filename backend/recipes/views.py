@@ -23,8 +23,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework import filters
 
-from django_filters.rest_framework import DjangoFilterBackend
-
 
 class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (RecipePermission,)
@@ -33,9 +31,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return get_recipe_queryset(self)
-
-    filter_backends = (DjangoFilterBackend,)
-    filter_fields = ('tags', 'author')
 
 
 class TagViewSet(viewsets.ViewSet):
