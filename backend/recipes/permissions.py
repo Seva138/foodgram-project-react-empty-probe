@@ -6,7 +6,11 @@ from rest_framework import viewsets
 
 
 class RecipePermission(permissions.BasePermission):
-    def has_permission(self, request: Request, view: viewsets.ModelViewSet):
+    def has_permission(
+        self,
+        request: Request,
+        view: viewsets.ModelViewSet
+        ) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_authenticated
@@ -20,6 +24,6 @@ class RecipePermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        if request.method in ('PUT', 'DELETE'):
+        if request.method in ('PATCH', 'PUT', 'DELETE'):
             return request.user == obj.author or request.user.is_staff
         return False
