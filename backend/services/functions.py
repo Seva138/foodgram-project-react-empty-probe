@@ -109,7 +109,7 @@ def is_subscribed(user: User, request: Request) -> bool:
             or UserSubscription.objects.filter(
                    author=request.user,
                    follower=user).exists())
-    except AttributeError:
+    except AttributeError as e:
         return False
 
 
