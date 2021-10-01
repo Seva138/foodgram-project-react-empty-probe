@@ -4,9 +4,9 @@ from django.contrib import admin
 
 
 class RecipeAdmin(admin.ModelAdmin):
-    fields = ('author', 'name', 'total_favorites')
+    search_fields = ('name',)
     readonly_fields=('total_favorites',)
-    list_filter = ('author', 'name', 'tags')
+    list_filter = ('tags',)
 
     @admin.display(empty_value='---empty---')
     def total_favorites(self, obj):
@@ -14,14 +14,15 @@ class RecipeAdmin(admin.ModelAdmin):
 
 
 class IngredientAdmin(admin.ModelAdmin):
-    list_filter = ('name',)
+    search_fields = ('name',)
+    list_filter = ('measurement_unit',)
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_filter = ('name',)
+    search_fields = ('name',)
+    list_filter = ('slug',)
 
 
-admin.site.empty_value_display = '---empty---'
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)

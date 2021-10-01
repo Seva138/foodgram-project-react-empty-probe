@@ -51,7 +51,8 @@ class UserSubscriptionView(viewsets.ViewSet):
     def list(self, request):
         queryset = request.user.subscriptions.all()
         serializer = UserSubscriptionSerializer(
-            queryset, many=True,
+            queryset,
+            many=True,
             context={'request': request}
         )
         return Response(serializer.data)
