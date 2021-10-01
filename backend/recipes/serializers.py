@@ -77,7 +77,16 @@ class RecipeSerializer(serializers.ModelSerializer):
             'tags',
             'cooking_time',
         )
-        extra_kwargs = {'author': {'required': False}}
+        extra_kwargs = {
+            'id': {'required': False},
+            'author': {'required': False},
+            'name': {'required': True},
+            'image': {'required': True},
+            'text': {'required': True},
+            'ingredients': {'required': True},
+            'tags': {'required': True},
+            'cooking_time': {'required': True},
+        }
 
 
 class IngredientSerializer(serializers.ModelSerializer):
