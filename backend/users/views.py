@@ -49,7 +49,7 @@ class UserSubscriptionView(viewsets.GenericViewSet):
     queryset = User.objects.none()
 
     def list(self, request):
-        queryset = request.user.subscriptions.all()
+        queryset = self.filter_queryset(request.user.subscriptions.all())
         page = self.paginate_queryset(queryset)
 
         if page is not None:

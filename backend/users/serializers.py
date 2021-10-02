@@ -104,9 +104,9 @@ class NestedUserRecipeSerializer(serializers.ModelSerializer):
 
 class UserSubscriptionSerializer(serializers.ModelSerializer):
     def to_representation(self, user: User):
-        recipes_limit = self.context['request'].query_params.get(
+        recipes_limit = int(self.context['request'].query_params.get(
             'recipes_limit'
-        )
+        ))
 
         return {
             'id': user.id,
@@ -116,7 +116,7 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             'last_name': user.last_name,
 
             'recipes': NestedUserRecipeSerializer(
-                user.recipes.all()[recipes_limit] if recipes_limit \
+                user.recipes.all()[:recipes_limit] if recipes_limit \
                     else user.recipes.all(),
                 many=True
             ).data,
