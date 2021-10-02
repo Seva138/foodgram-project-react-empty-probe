@@ -102,7 +102,7 @@ def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
 def is_subscribed(user: User, request: Request) -> bool:
     """Returns True if request.user is subscribed on requested user,
     otherwise False. The same user is considered to be subscribed on itself.
-    Returns False for not authorized user.
+    Returns False for unauthorized user.
     """
     try:
         return (request.user.email == user.email
@@ -115,7 +115,7 @@ def is_subscribed(user: User, request: Request) -> bool:
 
 def is_favorited(recipe: Recipe, request: Request) -> bool:
     """Returns True if a particular recipe is user's favorite one,
-    otherwise False. Returns False for not authenticated user.
+    otherwise False. Returns False for unauthenticated user.
     """
     try:
         return request.user.favorites.filter(id=recipe.id).exists()
@@ -125,7 +125,7 @@ def is_favorited(recipe: Recipe, request: Request) -> bool:
 
 def is_in_shopping_cart(recipe: Recipe, request: Request) -> bool:
     """Returns True if specified recipe is in user's shopping cart,
-    otherwise False. Returns False for not authenticated user.
+    otherwise False. Returns False for unauthenticated user.
     """
     try:
         return request.user.shopping_cart.recipes.filter(id=recipe.id).exists()

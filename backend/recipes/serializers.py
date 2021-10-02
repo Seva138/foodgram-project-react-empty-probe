@@ -63,11 +63,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance: Recipe, validated_data: dict) -> Recipe:
-        if self.partial:
-            raise serializers.ValidationError(
-               ('PATCH method is deprecated, use PUT method instead '
-                '(you must update all fields, but not some of them).')
-            )
         return update_recipe(instance=instance, validated_data=validated_data)
 
 
