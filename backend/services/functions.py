@@ -84,16 +84,33 @@ def create_recipe(validated_data: dict, request: Request) -> Recipe:
 def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
     """Entirely updates a particular recipe, rewriting all fields.
     """
-    instance.name = validated_data['name']
-    instance.image = validated_data['image']
-    instance.text = validated_data['text']
-    instance.cooking_time = validated_data['cooking_time']
+    instance.name = (
+        validated_data['name'] if validated_data.get('name')
+        else instance.name
+    )
+    instance.image = (
+        validated_data['image'] if validated_data.get('name')
+        else instance.image
+    )
+    instance.text = (
+        validated_data['text'] if validated_data.get('name')
+        else instance.text
+    )
+    instance.cooking_time = (
+        validated_data['cooking_time'] if validated_data.get('name')
+        else instance.cooking_time
+    )
 
-    instance.tags.clear()
-    instance.tags.add(*validated_data['tags'])
+    if validated_data.get('tags'):
+        instance.tags.clear()
+        instance.tags.add(*validated_data['tags'])
 
-    instance.ingredients.clear()
-    add_ingredients_to_recipe(recipe=instance, validated_data=validated_data)
+    if validated_data.get('ingredients'):
+        instance.ingredients.clear()
+        add_ingredients_to_recipe(
+            recipe=instance,
+            validated_data=validated_data
+        )
 
     instance.save()
     return instance
