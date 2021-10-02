@@ -100,15 +100,15 @@ def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
 
 
 def is_subscribed(user: User, request: Request) -> bool:
-    """Returns True if requested user is subscribed on request.user,
+    """Returns True if request.user is subscribed on requested user,
     otherwise False. The same user is considered to be subscribed on itself.
     Returns False for not authorized user.
     """
     try:
         return (request.user.email == user.email
             or UserSubscription.objects.filter(
-                   author=request.user,
-                   follower=user).exists())
+                   author=user,
+                   follower=request.user).exists())
     except AttributeError as e:
         return False
 
