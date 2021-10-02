@@ -27,20 +27,24 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
     if self.request.method not in SAFE_METHODS:
         return queryset
 
+    author_id = self.request.query_params.get('author')
     is_favorited = self.request.query_params.get('is_favorited')
     is_in_shopping_cart = self.request.query_params.get(
         'is_in_shopping_cart'
     )
     slugs = self.request.query_params.getlist('tags')
 
-    if ((not is_favorited and not is_in_shopping_cart and not slugs)
-        or not self.request.user.is_authenticated):
+    if ((not is_favorited 
+         and not is_in_shopping_cart
+         and not slugs
+         and not author_id
+        ) or not self.request.user.is_authenticated):
         return queryset
 
-    # Here is used the concept of queryset union (A | B | C).
+    # Here is used the concept of queryset union (A | B).
     # Do not confuse "|" sign with bitwise OR operator.
 
-    return (
+    queryset = (
        self.request.user.favorites.all()
        if is_favorited else Recipe.objects.none()
 
@@ -50,6 +54,10 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
        | Recipe.objects.filter(tags__slug__in=slugs)
        if slugs else Recipe.objects.none()
     ).distinct()
+
+    if author_id:
+        return queryset.filter(author__id=int(author_id))
+    return queryset
 
 
 def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict) -> None:
