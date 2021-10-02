@@ -82,7 +82,7 @@ def create_recipe(validated_data: dict, request: Request) -> Recipe:
 
 
 def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
-    """Entirely updates a particular recipe, rewriting all fields.
+    """Updates a recipe with specified in validated_data fields.
     """
     instance.name = (
         validated_data['name'] if validated_data.get('name')

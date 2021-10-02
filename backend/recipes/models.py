@@ -64,8 +64,8 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        verbose_name = 'recipe'
-        verbose_name_plural = 'recipes'
+        verbose_name = 'рецепт'
+        verbose_name_plural = 'рецепты'
 
     def __str__(self):
         return f'Recipe - id: {self.id}, name: {self.name}.'
@@ -89,8 +89,8 @@ class Tag(models.Model):
     )
 
     class Meta:
-        verbose_name = 'tag'
-        verbose_name_plural = 'tags'
+        verbose_name = 'тэг'
+        verbose_name_plural = 'тэги'
 
     def __str__(self):
         return f'Tag - id: {self.id}, name: {self.name}.'
@@ -110,8 +110,8 @@ class Ingredient(models.Model):
     )
 
     class Meta:
-        verbose_name = 'ingrediet'
-        verbose_name_plural = 'ingredients'
+        verbose_name = 'ингредиент'
+        verbose_name_plural = 'ингредиенты'
 
     def __str__(self):
         return f'Ingredient - id: {self.id}, name: {self.name}.'
@@ -146,8 +146,8 @@ class RecipeIngredient(models.Model):
     )
 
     class Meta:
-        verbose_name = 'recipe ingredient relation'
-        verbose_name_plural = 'recipe ingredient relations'
+        verbose_name = 'отношение рецепта к ингредиенту'
+        verbose_name_plural = 'отношение рецепта к ингредиентам'
 
     def __str__(self):
         return f'RecipeIngredient - id: {self.id}.'
@@ -171,8 +171,8 @@ class RecipeTag(models.Model):
     )
 
     class Meta:
-        verbose_name = 'recipe tag relation'
-        verbose_name_plural = 'recipe tag relations'
+        verbose_name = 'отношение рецепта к тэгу'
+        verbose_name_plural = 'отношение рецепта к тэгам'
 
     def __str__(self):
         return f'RecipeTag - id: {self.id}.'

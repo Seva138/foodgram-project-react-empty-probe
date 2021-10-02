@@ -43,8 +43,8 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
     class Meta:
-        verbose_name = 'user'
-        verbose_name_plural = 'users'
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
 
     def __str__(self):
         return f'User - id: {self.id}, email: {self.email}.'
@@ -74,8 +74,8 @@ class UserCart(models.Model):
             UserCart.objects.create(user=instance)
 
     class Meta:
-        verbose_name = 'user\'s shopping cart'
-        verbose_name_plural = 'user\'s shopping carts'
+        verbose_name = 'карзина покупок пользователя'
+        verbose_name_plural = 'карзина покупок пользователей'
 
     def __str__(self):
         return f'UserCart - id: {self.id}, owner: {self.user}.'
@@ -106,8 +106,8 @@ class UserSubscription(models.Model):
     )
 
     class Meta:
-        verbose_name = 'user-to-user subscription'
-        verbose_name_plural = 'user-to-user subscriptions'
+        verbose_name = 'подписка'
+        verbose_name_plural = 'подписки'
 
     def __str__(self):
         return f'UserSubscription - id: {self.id}.'
@@ -142,8 +142,8 @@ class UserRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name = 'user recipe relation'
-        verbose_name_plural = 'user recipe relations'
+        verbose_name = 'отношение пользователя к рецепту'
+        verbose_name_plural = 'отношение пользователей к рецептам'
 
     def __str__(self):
         return f'UserRecipe - id: {self.id}.'
