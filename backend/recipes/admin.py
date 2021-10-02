@@ -1,4 +1,6 @@
-from recipes.models import Recipe, Ingredient, Tag
+from recipes.models import (
+    Recipe, Ingredient, Tag, RecipeIngredient, RecipeTag
+)
 
 from django.contrib import admin
 
@@ -26,3 +28,5 @@ class TagAdmin(admin.ModelAdmin):
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(RecipeIngredient)
+admin.site.register(RecipeTag)
