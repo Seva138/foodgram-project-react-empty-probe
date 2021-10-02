@@ -44,12 +44,22 @@ class UserPasswordView(generics.CreateAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UserSubscriptionView(viewsets.ViewSet):
+class UserSubscriptionView(viewsets.GenericViewSet):
     permission_classes = (IsAuthenticated,)
-    pagination_class = CustomPageNumberPagination
+    queryset = User.objects.none()
 
     def list(self, request):
         queryset = request.user.subscriptions.all()
+        page = self.paginate_queryset(queryset)
+
+        if page is not None:
+            serializer = UserSubscriptionSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
         serializer = UserSubscriptionSerializer(
             queryset,
             many=True,
