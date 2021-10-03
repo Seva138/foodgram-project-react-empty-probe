@@ -97,15 +97,15 @@ def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
         else instance.name
     )
     instance.image = (
-        validated_data['image'] if validated_data.get('name')
+        validated_data['image'] if validated_data.get('image')
         else instance.image
     )
     instance.text = (
-        validated_data['text'] if validated_data.get('name')
+        validated_data['text'] if validated_data.get('text')
         else instance.text
     )
     instance.cooking_time = (
-        validated_data['cooking_time'] if validated_data.get('name')
+        validated_data['cooking_time'] if validated_data.get('cooking_time')
         else instance.cooking_time
     )
 
