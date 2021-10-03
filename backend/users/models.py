@@ -12,15 +12,13 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         null=True,
-        verbose_name='username',
-        help_text='User\'s username field.'
+        verbose_name='пользователь',
     )
 
     email = models.EmailField(
         max_length=254,
         unique=True,
-        verbose_name='email',
-        help_text='User\'s email field.'
+        verbose_name='электронная почта',
     )
 
     subscriptions = models.ManyToManyField(
@@ -28,15 +26,13 @@ class User(AbstractUser):
         symmetrical=False,
         through='UserSubscription',
         through_fields=('follower', 'author'),
-        verbose_name='subscription',
-        help_text='User\'s subscriptions to other ones.'
+        verbose_name='подписка на другого пользователя',
     )
 
     favorites = models.ManyToManyField(
         to='recipes.Recipe',
         through='UserRecipe',
-        verbose_name='favorite',
-        help_text='User\'s favorite recipes.'
+        verbose_name='понравившееся рецепты',
     )
 
     USERNAME_FIELD = 'email'
@@ -47,7 +43,7 @@ class User(AbstractUser):
         verbose_name_plural = 'пользователи'
 
     def __str__(self):
-        return f'User - id: {self.id}, email: {self.email}.'
+        return f'Пользователь - id: {self.id}, почта: {self.email}.'
 
 
 class UserCart(models.Model):
@@ -58,14 +54,12 @@ class UserCart(models.Model):
         to='User',
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        verbose_name='user',
-        help_text='Relation to owner of the shopping cart.'
+        verbose_name='пользователь',
     )
 
     recipes = models.ManyToManyField(
         to='recipes.Recipe',
-        verbose_name='recipe',
-        help_text='Relation to a recipe in User\'s shopping cart.'
+        verbose_name='рецепт',
     )
 
     @receiver(post_save, sender=User)
@@ -78,7 +72,7 @@ class UserCart(models.Model):
         verbose_name_plural = 'карзина покупок пользователей'
 
     def __str__(self):
-        return f'UserCart - id: {self.id}, owner: {self.user}.'
+        return f'Карзина - id: {self.id}, владелец: {self.user}.'
 
 
 class UserSubscription(models.Model):
@@ -87,22 +81,19 @@ class UserSubscription(models.Model):
     follower = models.ForeignKey(
         to='User',
         on_delete=models.CASCADE,
-        verbose_name='follower',
-        help_text='Relation to the follower.'
+        verbose_name='подписчик',
     )
 
     author = models.ForeignKey(
         to='User',
         on_delete=models.CASCADE,
         related_name='followers',
-        verbose_name='author',
-        help_text='Relation to the author.'
+        verbose_name='автор',
     )
 
     subscription_date = models.DateTimeField(
         auto_now_add=True,
-        verbose_name='date of subscription',
-        help_text='Date of subscription between two users.'
+        verbose_name='дата подписки',
     )
 
     class Meta:
@@ -110,7 +101,7 @@ class UserSubscription(models.Model):
         verbose_name_plural = 'подписки'
 
     def __str__(self):
-        return f'UserSubscription - id: {self.id}.'
+        return f'ПользовательПодписка - id: {self.id}.'
 
 
 
@@ -122,23 +113,20 @@ class UserRecipe(models.Model):
         to='User',
         on_delete=models.CASCADE,
         related_name='favorite_recipes',
-        verbose_name='user',
-        help_text='User\'s favorite recipes.'
+        verbose_name='пользователь',
     )
 
     recipe = models.ForeignKey(
         to='recipes.Recipe',
         on_delete=models.CASCADE,
-        verbose_name='recipe',
-        help_text='Recipe that is favorited by user.'
+        verbose_name='рецепт',
     )
 
     note = models.CharField(
         max_length=1024,
         blank=True,
         null=True,
-        verbose_name='note',
-        help_text='Note on why user has decided to add a recipe.'
+        verbose_name='примечание',
     )
 
     class Meta:
@@ -146,4 +134,4 @@ class UserRecipe(models.Model):
         verbose_name_plural = 'отношение пользователей к рецептам'
 
     def __str__(self):
-        return f'UserRecipe - id: {self.id}.'
+        return f'ПользовательРецепт - id: {self.id}.'

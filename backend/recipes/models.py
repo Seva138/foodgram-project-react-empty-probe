@@ -11,40 +11,32 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes',
-        verbose_name='author',
-        help_text='Author of a recipe.'
+        verbose_name='автор',
     )
 
     name = models.CharField(
         max_length=200,
-        verbose_name='name',
-        help_text='Name of a recipe.'
+        verbose_name='имя',
     )
 
     image = models.ImageField(
         max_length=4096,
         upload_to='images/%Y-%m-%d',
-        verbose_name='image',
-        help_text='Image of a recipe.'
+        verbose_name='фото',
     )
 
-    text = models.TextField(
-        verbose_name='text',
-        help_text='Description of a recipe.'
-    )
+    text = models.TextField(verbose_name='описание')
 
     ingredients = models.ManyToManyField(
         'Ingredient',
         through='RecipeIngredient',
-        verbose_name='ingredient',
-        help_text='Ingredients of a recipe.'
+        verbose_name='ингредиет',
     )
 
     tags = models.ManyToManyField(
         'Tag',
         through='RecipeTag',
-        verbose_name='tag',
-        help_text='Tags of a recipe.'
+        verbose_name='тэг',
     )
 
     cooking_time = models.IntegerField(
@@ -53,14 +45,12 @@ class Recipe(models.Model):
             MinValueValidator(1),
             MaxValueValidator(44640)
         ),
-        verbose_name='cooking time (m)',
-        help_text='Cooking time in minutes.'
+        verbose_name='время приготовления (в минутах)',
     )
 
     creation_date = models.DateTimeField(
         auto_now=True,
-        verbose_name='data of creation',
-        help_text='Date of creation of a recipe.'
+        verbose_name='дата создания рецепта',
     )
 
     class Meta:
@@ -68,24 +58,21 @@ class Recipe(models.Model):
         verbose_name_plural = 'рецепты'
 
     def __str__(self):
-        return f'Recipe - id: {self.id}, name: {self.name}.'
+        return f'Рецепт - id: {self.id}, имя: {self.name}.'
 
 
 class Tag(models.Model):
     name = models.CharField(
         max_length=256,
-        verbose_name='name',
-        help_text='Name of a tag.'
+        verbose_name='имя',
     )
     color = models.CharField(
         max_length=64,
-        verbose_name='color',
-        help_text='Colour of a tag.'
+        verbose_name='цвет',
     )
     slug = models.SlugField(
         max_length=64,
-        verbose_name='slug',
-        help_text='Slug of a tag.'
+        verbose_name='слаг',
     )
 
     class Meta:
@@ -93,20 +80,18 @@ class Tag(models.Model):
         verbose_name_plural = 'тэги'
 
     def __str__(self):
-        return f'Tag - id: {self.id}, name: {self.name}.'
+        return f'Тэг - id: {self.id}, имя: {self.name}.'
 
 
 class Ingredient(models.Model):
     name = models.CharField(
         max_length=256,
-        verbose_name='name',
-        help_text='Name of an ingredient.'
+        verbose_name='имя',
     )
 
     measurement_unit = models.CharField(
         max_length=32,
-        verbose_name='measurement_unit',
-        help_text='Measurement unit of an ingredient.'
+        verbose_name='еденица измерения',
     )
 
     class Meta:
@@ -114,7 +99,7 @@ class Ingredient(models.Model):
         verbose_name_plural = 'ингредиенты'
 
     def __str__(self):
-        return f'Ingredient - id: {self.id}, name: {self.name}.'
+        return f'Игредиент - id: {self.id}, имя: {self.name}.'
 
 
 class RecipeIngredient(models.Model):
@@ -124,15 +109,13 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        verbose_name='recipe',
-        help_text='Relation to a recipe.'
+        verbose_name='рецепт',
     )
 
     ingredient = models.ForeignKey(
         'Ingredient',
         on_delete=models.CASCADE,
-        verbose_name='ingredient',
-        help_text='Relation to an ingredient.'
+        verbose_name='игредиент',
     )
 
     amount = models.IntegerField(
@@ -141,8 +124,7 @@ class RecipeIngredient(models.Model):
             MinValueValidator(1),
             MaxValueValidator(44640)
         ),
-        verbose_name='amount',
-        help_text='Amount of ingredients.'
+        verbose_name='количество',
     )
 
     class Meta:
@@ -150,7 +132,7 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'отношение рецепта к ингредиентам'
 
     def __str__(self):
-        return f'RecipeIngredient - id: {self.id}.'
+        return f'РецептИнгредиент - id: {self.id}.'
 
 
 class RecipeTag(models.Model):
@@ -159,15 +141,13 @@ class RecipeTag(models.Model):
     recipe = models.ForeignKey(
         'Recipe',
         on_delete=models.CASCADE,
-        verbose_name='recipe',
-        help_text='Relation to a recipe.'
+        verbose_name='рецепт',
     )
 
     tag = models.ForeignKey(
         'Tag',
         on_delete=models.CASCADE,
-        verbose_name='tag',
-        help_text='Relation to a tag.'
+        verbose_name='тэг',
     )
 
     class Meta:
@@ -175,4 +155,4 @@ class RecipeTag(models.Model):
         verbose_name_plural = 'отношение рецепта к тэгам'
 
     def __str__(self):
-        return f'RecipeTag - id: {self.id}.'
+        return f'РецептТэг - id: {self.id}.'
