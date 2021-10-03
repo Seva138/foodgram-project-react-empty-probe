@@ -6,7 +6,7 @@ from django.contrib import admin
 
 
 class RecipeIngredientInline(admin.TabularInline):
-    model = Recipe.ingredient.through
+    model = Recipe.ingredients.through
 
 
 class RecipeTagInline(admin.TabularInline):
