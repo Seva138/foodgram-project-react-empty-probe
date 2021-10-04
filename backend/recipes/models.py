@@ -57,6 +57,7 @@ class Recipe(models.Model):
         verbose_name = 'рецепт'
         verbose_name_plural = 'рецепты'
 
+
     def __str__(self):
         return f'Рецепт - id: {self.id}, имя: {self.name}.'
 
@@ -131,6 +132,13 @@ class RecipeIngredient(models.Model):
         verbose_name = 'отношение рецепта к ингредиенту'
         verbose_name_plural = 'отношение рецепта к ингредиентам'
 
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe_id', 'ingredient_id'),
+                name='recipe_ingredient_unique_constraint'
+            ),
+        )
+
     def __str__(self):
         return f'РецептИнгредиент - id: {self.id}.'
 
@@ -150,9 +158,17 @@ class RecipeTag(models.Model):
         verbose_name='тэг',
     )
 
+
     class Meta:
         verbose_name = 'отношение рецепта к тэгу'
         verbose_name_plural = 'отношение рецепта к тэгам'
+
+        constraints = (
+            models.UniqueConstraint(
+                fields=('recipe_id', 'tag_id'),
+                name='recipe_tag_unique_constraint'
+            ),
+        )
 
     def __str__(self):
         return f'РецептТэг - id: {self.id}.'
