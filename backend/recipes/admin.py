@@ -10,9 +10,15 @@ from django.db import IntegrityError
 class RecipeIngredientInline(admin.TabularInline):
     model = Recipe.ingredients.through
 
+    extra = 1
+    max_num = 1
+
 
 class RecipeTagInline(admin.TabularInline):
     model = Recipe.tags.through
+
+    extra = 1
+    max_num = 1
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -24,21 +30,6 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(empty_value='---empty---')
     def total_favorites(self, obj):
         return obj.userrecipe_set.all().count()
-
-    def save_related(self, request, form, formsets, change):
-        """If superuser tries to create a recipe with two or more
-        identical tags or ingredients, then a recipe is created with no ones.
-        """
-        try:
-            with transaction.atomic():
-                super(RecipeAdmin, self).save_related(
-                    request,
-                    form,
-                    formsets,
-                    change
-                )
-        except IntegrityError:
-            pass
 
 
 class IngredientAdmin(admin.ModelAdmin):
