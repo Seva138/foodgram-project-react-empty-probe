@@ -41,7 +41,7 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
         ) or not self.request.user.is_authenticated):
         return queryset
 
-    # Here is used the concept of queryset union (A | B).
+    # Here is used the concept of queryset union (A | B | C).
     # Do not confuse "|" sign with bitwise OR operator.
 
     queryset = (
@@ -55,9 +55,11 @@ def get_recipe_queryset(self: viewsets.ModelViewSet) \
        if slugs else Recipe.objects.none()
     ).distinct()
 
-    if author_id:
-        return queryset.filter(author__id=int(author_id))
-    return queryset
+    try:
+        return (queryset.filter(author__id=int(author_id))
+                if author_id else queryset)
+    except ValueError as e:
+        return queryset
 
 
 def add_ingredients_to_recipe(recipe: Recipe, validated_data: dict) -> None:
@@ -92,21 +94,12 @@ def create_recipe(validated_data: dict, request: Request) -> Recipe:
 def update_recipe(instance: Recipe, validated_data: dict) -> Recipe:
     """Updates a recipe with specified in validated_data fields.
     """
-    instance.name = (
-        validated_data['name'] if validated_data.get('name')
-        else instance.name
-    )
-    instance.image = (
-        validated_data['image'] if validated_data.get('image')
-        else instance.image
-    )
-    instance.text = (
-        validated_data['text'] if validated_data.get('text')
-        else instance.text
-    )
-    instance.cooking_time = (
-        validated_data['cooking_time'] if validated_data.get('cooking_time')
-        else instance.cooking_time
+    instance.name = validated_data.get('name', instance.name)
+    instance.image = validated_data.get('image', instance.image)
+    instance.text = validated_data.get('text', instance.text)
+    instance.cooking_time = validated_data.get(
+        'cooking_time',
+        instance.cooking_time
     )
 
     if validated_data.get('tags'):
@@ -157,6 +150,7 @@ def is_in_shopping_cart(recipe: Recipe, request: Request) -> bool:
     except (AttributeError, ObjectDoesNotExist) as e:
         return False
 
+
 def get_ingredient_queryset(request: Request) \
     -> Union[QuerySet, List[Ingredient]]:
     if request.query_params.get('name'):
@@ -189,6 +183,8 @@ def load_ingredients(request: Request, file: str) -> None:
 
 
 def create_user(validated_data: dict) -> User:
+    """Creates a user with an encrypted password.
+    """
     return User.objects.create(
         username=validated_data['username'],
         email=validated_data['email'],

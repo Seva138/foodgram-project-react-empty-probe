@@ -3,8 +3,6 @@ from recipes.models import (
 )
 
 from django.contrib import admin
-from django.db import transaction
-from django.db import IntegrityError
 
 
 class RecipeIngredientInline(admin.TabularInline):
